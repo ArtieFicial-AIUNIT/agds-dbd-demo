@@ -3,6 +3,7 @@ import { Prose } from '@ag.ds-next/react/prose';
 import { Stack } from '@ag.ds-next/react/stack';
 import { AppLayout } from '../AppLayout';
 import { CostCalculator } from '../CostCalculator/CostCalculator';
+import { MarketSimulator } from '../MarketSimulator/MarketSimulator';
 
 export const HomePage = () => {
     return (
@@ -21,6 +22,11 @@ export const HomePage = () => {
                         <p>Use the calculator below to estimate your export costs:</p>
                     </Prose>
                     <CostCalculator />
+                    <Prose>
+                        <h2>Market Scenario Planning</h2>
+                        <p>Simulate market closures and find alternative export destinations:</p>
+                    </Prose>
+                    <MarketSimulator />
                 </Stack>
             </PageContent>
         </AppLayout>

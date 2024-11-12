@@ -15,27 +15,48 @@ export const CostCalculator = () => {
     const [destination, setDestination] = useState('');
     const [quantity, setQuantity] = useState('');
     const [breakdown, setBreakdown] = useState<CostBreakdown | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const calculateCosts = () => {
-        if (!destination || !quantity) return;
+        try {
+            setError(null);
+            
+            if (!destination) {
+                setError('Please select a destination');
+                return;
+            }
+            
+            if (!quantity || parseFloat(quantity) <= 0) {
+                setError('Please enter a valid quantity');
+                return;
+            }
 
-        const market = marketData[destination];
-        const qty = parseFloat(quantity) || 0;
+            const market = marketData[destination];
+            if (!market) {
+                setError('Market data not found');
+                return;
+            }
 
-        const baseCost = market.basePrice * qty;
-        const shippingCost = market.shippingCost.baseRate + (market.shippingCost.perKgRate * qty);
-        const tariffCost = baseCost * market.tariffRate;
-        const regulatoryCost = market.regulations.reduce((sum, reg) => sum + reg.cost, 0);
+            const qty = parseFloat(quantity);
+            const baseCost = market.basePrice * qty;
+            const shippingCost = market.shippingCost.baseRate + (market.shippingCost.perKgRate * qty);
+            const tariffCost = baseCost * market.tariffRate;
+            const regulatoryCost = market.regulations.reduce((sum, reg) => sum + reg.cost, 0);
 
-        const breakdown: CostBreakdown = {
-            baseCost,
-            shippingCost,
-            tariffCost,
-            regulatoryCost,
-            total: baseCost + shippingCost + tariffCost + regulatoryCost
-        };
+            const newBreakdown: CostBreakdown = {
+                baseCost,
+                shippingCost,
+                tariffCost,
+                regulatoryCost,
+                total: baseCost + shippingCost + tariffCost + regulatoryCost
+            };
 
-        setBreakdown(breakdown);
+            setBreakdown(newBreakdown);
+            
+        } catch (err) {
+            console.error('Calculation error:', err);
+            setError('An error occurred while calculating costs');
+        }
     };
 
     return (
@@ -43,11 +64,12 @@ export const CostCalculator = () => {
             <FormStack>
                 <Select 
                     label="Export destination"
+                    required
                     options={[
                         { label: 'Select destination', value: '' },
-                        ...Object.values(marketData).map(market => ({
+                        ...Object.entries(marketData).map(([id, market]) => ({
                             label: market.name,
-                            value: market.id
+                            value: id
                         }))
                     ]}
                     value={destination}
@@ -56,9 +78,18 @@ export const CostCalculator = () => {
                 <TextInput
                     label="Quantity (kg)"
                     type="number"
+                    required
+                    min="0"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                 />
+                
+                {error && (
+                    <Box padding={1} background="shade" tone="error">
+                        <Text>{error}</Text>
+                    </Box>
+                )}
+
                 <Button onClick={calculateCosts}>Calculate costs</Button>
                 
                 {breakdown && (
