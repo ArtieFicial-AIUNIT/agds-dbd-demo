@@ -276,26 +276,29 @@ export const MarketSimulator = () => {
                                     </Text>
                                     
                                     <Box 
-                                        display="flex" 
-                                        flexDirection="row" 
-                                        flexWrap="wrap" 
+                                        display="grid" 
                                         gap={1.5} 
                                         paddingTop={1}
+                                        style={{
+                                            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+                                            alignItems: 'stretch'
+                                        }}
                                     >
                                         {analyses[marketId].alternatives.map(alt => (
                                             <Card 
                                                 key={alt.marketId} 
                                                 shadow
                                                 style={{ 
-                                                    flex: '1 1 300px',
-                                                    maxWidth: '400px' 
+                                                    height: '100%',
+                                                    display: 'flex',
+                                                    flexDirection: 'column'
                                                 }}
-                                                background={alt.netCostDifference <= 0 ? 'shade' : undefined}
+                                                background="shade"
                                             >
-                                                <Stack gap={0}>
+                                                <Stack gap={0} style={{ height: '100%' }}>
                                                     <Box 
                                                         padding={1.5} 
-                                                        background={alt.netCostDifference <= 0 ? 'success' : 'shade'}
+                                                        background={alt.netCostDifference <= 0 ? 'success' : 'error'}
                                                         style={{
                                                             borderTopLeftRadius: '4px',
                                                             borderTopRightRadius: '4px'
@@ -305,14 +308,14 @@ export const MarketSimulator = () => {
                                                             as="h5" 
                                                             fontSize="lg" 
                                                             weight="bold"
-                                                            color={alt.netCostDifference <= 0 ? 'white' : undefined}
+                                                            color="white"
                                                         >
                                                             {alt.name}
                                                         </Text>
                                                     </Box>
 
-                                                    <Box padding={1.5}>
-                                                        <Stack gap={1}>
+                                                    <Box padding={1.5} style={{ flex: 1 }}>
+                                                        <Stack gap={1} style={{ height: '100%' }}>
                                                             <Box>
                                                                 <Text fontSize="sm" color="muted">
                                                                     Estimated Cost
