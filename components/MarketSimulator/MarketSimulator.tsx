@@ -1,32 +1,26 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card } from '@ag.ds-next/react/card';
 import { Text } from '@ag.ds-next/react/text';
 import { Box } from '@ag.ds-next/react/box';
 import { Button } from '@ag.ds-next/react/button';
 import { Callout } from '@ag.ds-next/react/callout';
-import { Table } from '@ag.ds-next/react/table';
 import { TextInput } from '@ag.ds-next/react/text-input';
 import { Stack } from '@ag.ds-next/react/stack';
 import { marketData } from '../../data/marketData';
-import { MarketRecommendation } from '../../types/market';
 
 export const MarketSimulator = () => {
+    const [quantity, setQuantity] = useState<string>('100');
     const [simulatedClosures, setSimulatedClosures] = useState<string[]>([]);
-    const [recommendations, setRecommendations] = useState<MarketRecommendation[]>([]);
-    const [quantity, setQuantity] = useState<string>('100'); // Default quantity
-    const [impactAnalysis, setImpactAnalysis] = useState<{
-        beforeClosure: number;
-        afterClosure: number;
-        lostRevenue: number;
-    } | null>(null);
-
-    const toggleMarketClosure = (marketId: string) => {
-        setSimulatedClosures(prev => 
-            prev.includes(marketId) 
-                ? prev.filter(id => id !== marketId)
-                : [...prev, marketId]
-        );
-    };
+    const [analyses, setAnalyses] = useState<Record<string, {
+        closedMarketCost: number;
+        alternatives: Array<{
+            marketId: string;
+            name: string;
+            estimatedCost: number;
+            netCostDifference: number;
+            advantages: string[];
+        }>;
+    }>>({});
 
     const calculateTotalCost = (marketId: string, qty: number) => {
         const market = marketData[marketId];
@@ -37,143 +31,267 @@ export const MarketSimulator = () => {
         return baseCost + shippingCost + tariffCost + regulatoryCost;
     };
 
-    const calculateMarketScore = (market: typeof marketData[keyof typeof marketData]) => {
-        const currentMonth = new Date().getMonth() + 1;
-        const monthStr = currentMonth.toString().padStart(2, '0');
-        const isInPeakSeason = market.seasonalDemand.peak.includes(monthStr);
-        const isInLowSeason = market.seasonalDemand.low.includes(monthStr);
-        
-        const demandScore = market.demandLevel * 0.4;
-        const tariffScore = (1 - market.tariffRate) * 0.3;
-        const seasonalityScore = (isInPeakSeason ? 2 : isInLowSeason ? 0.5 : 1) * 0.3;
-        
-        return {
-            total: demandScore + tariffScore + seasonalityScore,
-            components: {
-                demand: demandScore,
-                tariff: tariffScore,
-                seasonality: seasonalityScore
+    const generateAdvantages = (market: typeof marketData[keyof typeof marketData]) => {
+        const advantages = [];
+        if (market.shippingCost.perKgRate <= 2.5) advantages.push('Lower shipping costs');
+        if (market.tariffRate <= 0.15) advantages.push('Lower tariff rates');
+        if (market.regulations.length <= 1) advantages.push('Simpler regulatory requirements');
+        return advantages;
+    };
+
+    const toggleMarketClosure = (marketId: string) => {
+        setSimulatedClosures(prev => {
+            const newClosures = prev.includes(marketId)
+                ? prev.filter(id => id !== marketId)
+                : [...prev, marketId];
+            
+            // If market is being opened, remove its analysis
+            if (prev.includes(marketId)) {
+                setAnalyses(current => {
+                    const { [marketId]: _, ...rest } = current;
+                    return rest;
+                });
+            } else {
+                // If market is being closed, generate analysis
+                analyzeAlternatives(marketId);
             }
-        };
-    };
-
-    const generateReasons = (market: typeof marketData[keyof typeof marketData]) => {
-        const reasons = [];
-        if (market.demandLevel >= 8) reasons.push('High market demand');
-        if (market.tariffRate <= 0.15) reasons.push('Favorable tariff rates');
-        if (market.shippingCost.perKgRate <= 2.5) reasons.push('Competitive shipping rates');
-        return reasons;
-    };
-
-    const generateRecommendations = () => {
-        const qty = parseFloat(quantity) || 100;
-        
-        // Calculate total cost before closures
-        const beforeCost = Object.entries(marketData)
-            .filter(([id]) => !simulatedClosures.includes(id))
-            .reduce((sum, [id]) => sum + calculateTotalCost(id, qty), 0);
-
-        // Generate recommendations and calculate new total cost
-        const recommendations = Object.entries(marketData)
-            .filter(([id]) => !simulatedClosures.includes(id))
-            .map(([id, market]) => {
-                const scoreDetails = calculateMarketScore(market);
-                return {
-                    marketId: id,
-                    score: scoreDetails.total,
-                    scoreComponents: scoreDetails.components,
-                    reasons: generateReasons(market),
-                    estimatedCost: calculateTotalCost(id, qty)
-                };
-            })
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 3);
-
-        const afterCost = recommendations.reduce((sum, rec) => sum + rec.estimatedCost, 0);
-
-        setImpactAnalysis({
-            beforeClosure: beforeCost,
-            afterClosure: afterCost,
-            lostRevenue: beforeCost - afterCost
+            
+            return newClosures;
         });
+    };
 
-        setRecommendations(recommendations);
+    const analyzeAlternatives = (marketId: string) => {
+        const qty = parseFloat(quantity) || 100;
+        const closedMarketCost = calculateTotalCost(marketId, qty);
+
+        const alternatives = Object.entries(marketData)
+            .filter(([id]) => id !== marketId && !simulatedClosures.includes(id))
+            .map(([id, market]) => ({
+                marketId: id,
+                name: market.name,
+                estimatedCost: calculateTotalCost(id, qty),
+                netCostDifference: calculateTotalCost(id, qty) - closedMarketCost,
+                advantages: generateAdvantages(market)
+            }))
+            .sort((a, b) => a.estimatedCost - b.estimatedCost);
+
+        setAnalyses(current => ({
+            ...current,
+            [marketId]: {
+                closedMarketCost,
+                alternatives
+            }
+        }));
     };
 
     return (
         <Card>
-            <Stack gap={1}>
-                <Text as="h3">Market Scenario Simulator</Text>
+            <Stack gap={2}>
+                <Text as="h3" fontSize="xl" weight="bold">Market Alternative Analysis</Text>
                 
                 <Box padding={1}>
                     <TextInput
                         label="Export Quantity (kg)"
                         type="number"
                         value={quantity}
-                        onChange={(e) => setQuantity(e.target.value)}
+                        onChange={(e) => {
+                            setQuantity(e.target.value);
+                            // Recalculate all existing analyses with new quantity
+                            simulatedClosures.forEach(marketId => analyzeAlternatives(marketId));
+                        }}
                     />
                 </Box>
 
-                <Box padding={1} display="flex" gap={1}>
-                    {Object.entries(marketData).map(([id, market]) => (
-                        <Button
-                            key={id}
-                            onClick={() => toggleMarketClosure(id)}
-                            variant={simulatedClosures.includes(id) ? 'negative' : 'secondary'}
-                        >
-                            {market.name}: {simulatedClosures.includes(id) ? 'Closed' : 'Open'}
-                        </Button>
-                    ))}
+                <Box padding={1}>
+                    <Text weight="bold" fontSize="md">Select markets to close:</Text>
+                    <Box display="flex" flexWrap="wrap" gap={1} paddingTop={1}>
+                        {Object.entries(marketData).map(([id, market]) => (
+                            <Button
+                                key={id}
+                                onClick={() => toggleMarketClosure(id)}
+                                variant={simulatedClosures.includes(id) ? 'negative' : 'secondary'}
+                            >
+                                {market.name}: {simulatedClosures.includes(id) ? 'Closed' : 'Open'}
+                            </Button>
+                        ))}
+                    </Box>
                 </Box>
 
-                <Button onClick={generateRecommendations}>Analyze Impact & Get Recommendations</Button>
+                {simulatedClosures.map(marketId => (
+                    <Stack key={marketId} gap={2}>
+                        {analyses[marketId] && (
+                            <>
+                                <Callout 
+                                    title={`Market Impact Analysis: ${marketData[marketId].name}`} 
+                                    tone="warning"
+                                >
+                                    <Box padding={1}>
+                                        <Stack gap={1}>
+                                            <Box background="shade" padding={1} borderRadius="sm">
+                                                <Stack gap={0.5}>
+                                                    <Text fontSize="sm" color="muted">Current Market Cost</Text>
+                                                    <Text fontSize="xl" weight="bold">
+                                                        ${analyses[marketId].closedMarketCost.toFixed(2)} AUD
+                                                    </Text>
+                                                </Stack>
+                                            </Box>
 
-                {impactAnalysis && (
-                    <Callout title="Market Closure Impact Analysis" tone={impactAnalysis.lostRevenue > 0 ? 'warning' : 'success'}>
-                        <Table>
-                            <tbody>
-                                <tr>
-                                    <td>Total Cost Before Closures:</td>
-                                    <td>${impactAnalysis.beforeClosure.toFixed(2)}</td>
-                                </tr>
-                                <tr>
-                                    <td>Estimated Cost After Closures:</td>
-                                    <td>${impactAnalysis.afterClosure.toFixed(2)}</td>
-                                </tr>
-                                <tr>
-                                    <td>Potential Revenue Impact:</td>
-                                    <td>${Math.abs(impactAnalysis.lostRevenue).toFixed(2)} {impactAnalysis.lostRevenue > 0 ? 'Loss' : 'Gain'}</td>
-                                </tr>
-                            </tbody>
-                        </Table>
-                    </Callout>
-                )}
+                                            <Box borderTop borderColor="muted" paddingTop={1}>
+                                                <Text as="h4" fontSize="md" weight="bold">
+                                                    Key Market Information:
+                                                </Text>
+                                                <Box paddingTop={0.5}>
+                                                    <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+                                                        <li>Base Price: ${marketData[marketId].basePrice} per kg</li>
+                                                        <li>Tariff Rate: {(marketData[marketId].tariffRate * 100).toFixed(1)}%</li>
+                                                        <li>Shipping Rate: ${marketData[marketId].shippingCost.perKgRate} per kg</li>
+                                                    </ul>
+                                                </Box>
+                                            </Box>
+                                        </Stack>
+                                    </Box>
+                                </Callout>
 
-                {recommendations.length > 0 && (
-                    <Box padding={1}>
-                        <Text as="h4">Recommended Alternative Markets:</Text>
-                        {recommendations.map((rec) => (
-                            <Callout 
-                                key={rec.marketId} 
-                                title={`${marketData[rec.marketId].name} (Score: ${rec.score.toFixed(2)})`}
-                            >
-                                <Stack gap={0.5}>
-                                    <Text>Estimated Cost: ${rec.estimatedCost.toFixed(2)}</Text>
-                                    <Text weight="bold">Score Components:</Text>
-                                    <ul>
-                                        <li>Market Demand: {(rec.scoreComponents.demand * 100 / 0.4).toFixed(1)}%</li>
-                                        <li>Tariff Impact: {(rec.scoreComponents.tariff * 100 / 0.3).toFixed(1)}%</li>
-                                        <li>Seasonal Timing: {(rec.scoreComponents.seasonality * 100 / 0.3).toFixed(1)}%</li>
-                                    </ul>
-                                    <Text weight="bold">Key Advantages:</Text>
-                                    <ul>
-                                        {rec.reasons.map((reason, i) => (
-                                            <li key={i}>{reason}</li>
+                                <Box padding={1}>
+                                    <Text as="h4" fontSize="lg" weight="bold" fontFamily="heading">
+                                        Alternative Markets
+                                    </Text>
+                                    
+                                    <Box 
+                                        display="flex" 
+                                        flexDirection="row" 
+                                        flexWrap="wrap" 
+                                        gap={1.5} 
+                                        paddingTop={1}
+                                    >
+                                        {analyses[marketId].alternatives.map(alt => (
+                                            <Card 
+                                                key={alt.marketId} 
+                                                shadow
+                                                style={{ 
+                                                    flex: '1 1 300px',
+                                                    maxWidth: '400px' 
+                                                }}
+                                                background={alt.netCostDifference <= 0 ? 'shade' : undefined}
+                                            >
+                                                <Stack gap={0}>
+                                                    <Box 
+                                                        padding={1.5} 
+                                                        background={alt.netCostDifference <= 0 ? 'success' : 'shade'}
+                                                        style={{
+                                                            borderTopLeftRadius: '4px',
+                                                            borderTopRightRadius: '4px'
+                                                        }}
+                                                    >
+                                                        <Text 
+                                                            as="h5" 
+                                                            fontSize="lg" 
+                                                            weight="bold"
+                                                            color={alt.netCostDifference <= 0 ? 'white' : undefined}
+                                                        >
+                                                            {alt.name}
+                                                        </Text>
+                                                    </Box>
+
+                                                    <Box padding={1.5}>
+                                                        <Stack gap={1}>
+                                                            <Box>
+                                                                <Text fontSize="sm" color="muted">
+                                                                    Estimated Cost
+                                                                </Text>
+                                                                <Text fontSize="xl" weight="bold">
+                                                                    ${alt.estimatedCost.toFixed(2)} AUD
+                                                                </Text>
+                                                                <Box paddingTop={0.5}>
+                                                                    <Text 
+                                                                        fontSize="sm"
+                                                                        weight="bold"
+                                                                        color={alt.netCostDifference > 0 ? 'error' : 'success'}
+                                                                    >
+                                                                        {alt.netCostDifference > 0 ? '↑' : '↓'} 
+                                                                        ${Math.abs(alt.netCostDifference).toFixed(2)} AUD
+                                                                    </Text>
+                                                                </Box>
+                                                            </Box>
+
+                                                            <Box borderTop borderColor="muted" paddingTop={1}>
+                                                                <Text fontSize="sm" color="muted" weight="bold">
+                                                                    Market Details:
+                                                                </Text>
+                                                                <Box 
+                                                                    display="grid" 
+                                                                    gap={0.5} 
+                                                                    paddingTop={0.5}
+                                                                    style={{
+                                                                        gridTemplateColumns: 'auto 1fr',
+                                                                        fontSize: '0.875rem'
+                                                                    }}
+                                                                >
+                                                                    <Text>Base Price:</Text>
+                                                                    <Text>${marketData[alt.marketId].basePrice}/kg</Text>
+                                                                    
+                                                                    <Text>Tariff Rate:</Text>
+                                                                    <Text>{(marketData[alt.marketId].tariffRate * 100).toFixed(1)}%</Text>
+                                                                    
+                                                                    <Text>Shipping:</Text>
+                                                                    <Text>${marketData[alt.marketId].shippingCost.perKgRate}/kg</Text>
+                                                                    
+                                                                    <Text>Regulations:</Text>
+                                                                    <Text>{marketData[alt.marketId].regulations.length} requirements</Text>
+
+                                                                    <Text>Peak Season:</Text>
+                                                                    <Text>
+                                                                        {marketData[alt.marketId].seasonalDemand.peak
+                                                                            .map(month => new Date(2024, parseInt(month) - 1).toLocaleString('default', { month: 'short' }))
+                                                                            .join(', ')}
+                                                                    </Text>
+                                                                </Box>
+                                                            </Box>
+
+                                                            {alt.advantages.length > 0 && (
+                                                                <Box>
+                                                                    <Text fontSize="sm" color="muted" weight="bold">
+                                                                        Key Advantages:
+                                                                    </Text>
+                                                                    <Box 
+                                                                        paddingTop={0.5} 
+                                                                        display="flex" 
+                                                                        flexDirection="column" 
+                                                                        gap={0.5}
+                                                                    >
+                                                                        {alt.advantages.map((adv, i) => (
+                                                                            <Text 
+                                                                                key={i} 
+                                                                                fontSize="sm"
+                                                                                style={{
+                                                                                    display: 'flex',
+                                                                                    alignItems: 'center',
+                                                                                    gap: '0.5rem'
+                                                                                }}
+                                                                            >
+                                                                                ✓ {adv}
+                                                                            </Text>
+                                                                        ))}
+                                                                    </Box>
+                                                                </Box>
+                                                            )}
+                                                        </Stack>
+                                                    </Box>
+                                                </Stack>
+                                            </Card>
                                         ))}
-                                    </ul>
-                                </Stack>
-                            </Callout>
-                        ))}
+                                    </Box>
+                                </Box>
+                            </>
+                        )}
+                    </Stack>
+                ))}
+
+                {simulatedClosures.length > 0 && (
+                    <Box paddingTop={2}>
+                        <Text fontSize="sm" color="muted" fontStyle="italic">
+                            * Cost comparisons are based on your current export quantity of {quantity}kg
+                        </Text>
                     </Box>
                 )}
             </Stack>
