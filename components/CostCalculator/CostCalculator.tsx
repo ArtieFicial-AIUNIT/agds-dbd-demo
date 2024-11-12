@@ -7,6 +7,7 @@ import { Box } from '@ag.ds-next/react/box';
 import { Text } from '@ag.ds-next/react/text';
 import { Card } from '@ag.ds-next/react/card';
 import { Table } from '@ag.ds-next/react/table';
+import { Accordion, AccordionItem } from '@ag.ds-next/react/accordion';
 import { marketData } from '../../data/marketData';
 import { CostBreakdown } from '../../types/market';
 
@@ -62,49 +63,54 @@ export const CostCalculator = () => {
                 
                 {breakdown && (
                     <Box padding={1}>
-                        <Table>
-                            <thead>
-                                <tr>
-                                    <th>Cost Component</th>
-                                    <th>Amount (AUD)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Base Cost</td>
-                                    <td>${breakdown.baseCost.toFixed(2)}</td>
-                                </tr>
-                                <tr>
-                                    <td>Shipping</td>
-                                    <td>${breakdown.shippingCost.toFixed(2)}</td>
-                                </tr>
-                                <tr>
-                                    <td>Tariffs</td>
-                                    <td>${breakdown.tariffCost.toFixed(2)}</td>
-                                </tr>
-                                <tr>
-                                    <td>Regulatory Compliance</td>
-                                    <td>${breakdown.regulatoryCost.toFixed(2)}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Total Cost</strong></td>
-                                    <td><strong>${breakdown.total.toFixed(2)}</strong></td>
-                                </tr>
-                            </tbody>
-                        </Table>
+                        <Text fontWeight="bold" fontSize="lg">
+                            Total Cost: ${breakdown.total.toFixed(2)} AUD
+                        </Text>
                         
-                        {destination && (
-                            <Box padding={1}>
-                                <Text>Required Regulations:</Text>
-                                <ul>
-                                    {marketData[destination].regulations.map(reg => (
-                                        <li key={reg.name}>
-                                            {reg.name} - ${reg.cost} - {reg.description}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </Box>
-                        )}
+                        <Accordion>
+                            <AccordionItem title="View Cost Breakdown">
+                                <Table>
+                                    <thead>
+                                        <tr>
+                                            <th>Cost Component</th>
+                                            <th>Amount (AUD)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Base Cost</td>
+                                            <td>${breakdown.baseCost.toFixed(2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Shipping</td>
+                                            <td>${breakdown.shippingCost.toFixed(2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tariffs</td>
+                                            <td>${breakdown.tariffCost.toFixed(2)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Regulatory Compliance</td>
+                                            <td>${breakdown.regulatoryCost.toFixed(2)}</td>
+                                        </tr>
+                                    </tbody>
+                                </Table>
+                            </AccordionItem>
+
+                            {destination && (
+                                <AccordionItem title="View Required Regulations">
+                                    <Box padding={1}>
+                                        <ul>
+                                            {marketData[destination].regulations.map(reg => (
+                                                <li key={reg.name}>
+                                                    {reg.name} - ${reg.cost} - {reg.description}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </Box>
+                                </AccordionItem>
+                            )}
+                        </Accordion>
                     </Box>
                 )}
             </FormStack>
