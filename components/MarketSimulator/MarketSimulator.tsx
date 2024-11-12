@@ -122,63 +122,117 @@ export const MarketSimulator = () => {
                         {analyses[marketId] && (
                             <>
                                 <Callout 
-                                    title={`Market Impact Analysis: ${marketData[marketId].name}`} 
+                                    title={
+                                        <Box display="flex" alignItems="center" gap={0.5}>
+                                            <Text fontSize="xl" weight="bold" fontFamily="heading">
+                                                {marketData[marketId].name} Market Analysis
+                                            </Text>
+                                            <Text 
+                                                background="warning" 
+                                                color="white" 
+                                                padding={0.5} 
+                                                borderRadius="sm"
+                                                fontSize="xs"
+                                            >
+                                                Market Closure Scenario
+                                            </Text>
+                                        </Box>
+                                    }
                                     tone="warning"
                                 >
-                                    <Box padding={1}>
-                                        <Stack gap={1}>
-                                            <Box background="shade" padding={1} borderRadius="sm">
-                                                <Stack gap={0.5}>
-                                                    <Text fontSize="sm" color="muted">Current Market Cost</Text>
-                                                    <Text fontSize="xl" weight="bold">
-                                                        ${analyses[marketId].closedMarketCost.toFixed(2)} AUD
+                                    <Box padding={1.5}>
+                                        <Stack gap={2}>
+                                            {/* Current Market Stats */}
+                                            <Box 
+                                                background="bodyAlt" 
+                                                padding={1.5} 
+                                                borderRadius="lg"
+                                                shadow
+                                            >
+                                                <Stack gap={1}>
+                                                    <Text fontSize="sm" color="muted" fontFamily="heading">
+                                                        CURRENT MARKET PERFORMANCE
                                                     </Text>
+                                                    <Box display="flex" justifyContent="space-between" alignItems="flex-end">
+                                                        <Box>
+                                                            <Text fontSize="sm" color="muted">Total Export Cost</Text>
+                                                            <Text fontSize="xxl" weight="bold">
+                                                                ${analyses[marketId].closedMarketCost.toFixed(2)}
+                                                            </Text>
+                                                            <Text fontSize="xs" color="muted">AUD</Text>
+                                                        </Box>
+                                                        <Box>
+                                                            <Text fontSize="sm" color="muted">Export Volume</Text>
+                                                            <Text fontSize="lg" weight="bold">
+                                                                {quantity} kg
+                                                            </Text>
+                                                        </Box>
+                                                    </Box>
                                                 </Stack>
                                             </Box>
 
-                                            <Box borderTop borderColor="muted" paddingTop={1}>
-                                                <Text fontSize="sm" color="muted" weight="bold">
-                                                    Market Details:
-                                                </Text>
-                                                <Box 
-                                                    display="grid" 
-                                                    gap={0.5} 
-                                                    paddingTop={0.5}
-                                                    style={{
-                                                        gridTemplateColumns: 'auto 1fr',
-                                                        fontSize: '0.875rem'
-                                                    }}
-                                                >
-                                                    <Text>Base Price:</Text>
-                                                    <Text>${marketData[marketId].basePrice}/kg</Text>
-                                                    
-                                                    <Text>Tariff Rate:</Text>
-                                                    <Text>{(marketData[marketId].tariffRate * 100).toFixed(1)}%</Text>
-                                                    
-                                                    <Text>Shipping:</Text>
-                                                    <Text>${marketData[marketId].shippingCost.perKgRate}/kg</Text>
-                                                    
-                                                    <Text>Regulations:</Text>
-                                                    <Text>{marketData[marketId].regulations.length} requirements</Text>
+                                            {/* Market Details Grid */}
+                                            <Box 
+                                                display="grid" 
+                                                gap={1.5}
+                                                style={{
+                                                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
+                                                }}
+                                            >
+                                                <Box padding={1.5} background="shade" borderRadius="sm">
+                                                    <Stack gap={0.5}>
+                                                        <Text fontSize="xs" color="muted">BASE PRICE</Text>
+                                                        <Text fontSize="lg" weight="bold">
+                                                            ${marketData[marketId].basePrice}
+                                                            <Text as="span" fontSize="sm" color="muted">/kg</Text>
+                                                        </Text>
+                                                    </Stack>
+                                                </Box>
 
-                                                    <Text>Peak Season:</Text>
-                                                    <Text>
-                                                        {marketData[marketId].seasonalDemand.peak
-                                                            .map(month => new Date(2024, parseInt(month) - 1).toLocaleString('default', { month: 'short' }))
-                                                            .join(', ')}
-                                                    </Text>
+                                                <Box padding={1.5} background="shade" borderRadius="sm">
+                                                    <Stack gap={0.5}>
+                                                        <Text fontSize="xs" color="muted">TARIFF RATE</Text>
+                                                        <Text fontSize="lg" weight="bold">
+                                                            {(marketData[marketId].tariffRate * 100).toFixed(1)}%
+                                                        </Text>
+                                                    </Stack>
+                                                </Box>
+
+                                                <Box padding={1.5} background="shade" borderRadius="sm">
+                                                    <Stack gap={0.5}>
+                                                        <Text fontSize="xs" color="muted">SHIPPING RATE</Text>
+                                                        <Text fontSize="lg" weight="bold">
+                                                            ${marketData[marketId].shippingCost.perKgRate}
+                                                            <Text as="span" fontSize="sm" color="muted">/kg</Text>
+                                                        </Text>
+                                                    </Stack>
+                                                </Box>
+
+                                                <Box padding={1.5} background="shade" borderRadius="sm">
+                                                    <Stack gap={0.5}>
+                                                        <Text fontSize="xs" color="muted">PEAK SEASON</Text>
+                                                        <Text fontSize="md" weight="bold">
+                                                            {marketData[marketId].seasonalDemand.peak
+                                                                .map(month => new Date(2024, parseInt(month) - 1)
+                                                                .toLocaleString('default', { month: 'short' }))
+                                                                .join(', ')}
+                                                        </Text>
+                                                    </Stack>
                                                 </Box>
                                             </Box>
 
-                                            <Box borderTop borderColor="muted" paddingTop={1}>
-                                                <Text fontSize="sm" color="muted" weight="bold">
-                                                    Regulatory Requirements:
+                                            {/* Regulatory Requirements */}
+                                            <Box borderTop borderColor="muted" paddingTop={1.5}>
+                                                <Text fontSize="sm" color="muted" weight="bold" fontFamily="heading">
+                                                    REGULATORY REQUIREMENTS
                                                 </Text>
                                                 <Box 
-                                                    display="flex" 
-                                                    flexDirection="column"
-                                                    gap={0.5} 
-                                                    paddingTop={0.5}
+                                                    display="grid" 
+                                                    gap={1}
+                                                    paddingTop={1}
+                                                    style={{
+                                                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))'
+                                                    }}
                                                 >
                                                     {marketData[marketId].regulations.map(reg => (
                                                         <Box 
@@ -190,7 +244,7 @@ export const MarketSimulator = () => {
                                                         >
                                                             <Stack gap={0.5}>
                                                                 <Box display="flex" justifyContent="space-between" alignItems="center">
-                                                                    <Text fontSize="md" weight="bold">
+                                                                    <Text fontSize="md" weight="bold" fontFamily="heading">
                                                                         {reg.name}
                                                                     </Text>
                                                                     <Text 
@@ -199,6 +253,7 @@ export const MarketSimulator = () => {
                                                                         color="white"
                                                                         padding={0.5}
                                                                         borderRadius="sm"
+                                                                        fontFamily="monospace"
                                                                     >
                                                                         ${reg.cost} AUD
                                                                     </Text>
