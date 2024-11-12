@@ -137,15 +137,78 @@ export const MarketSimulator = () => {
                                             </Box>
 
                                             <Box borderTop borderColor="muted" paddingTop={1}>
-                                                <Text as="h4" fontSize="md" weight="bold">
-                                                    Key Market Information:
+                                                <Text fontSize="sm" color="muted" weight="bold">
+                                                    Market Details:
                                                 </Text>
-                                                <Box paddingTop={0.5}>
-                                                    <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
-                                                        <li>Base Price: ${marketData[marketId].basePrice} per kg</li>
-                                                        <li>Tariff Rate: {(marketData[marketId].tariffRate * 100).toFixed(1)}%</li>
-                                                        <li>Shipping Rate: ${marketData[marketId].shippingCost.perKgRate} per kg</li>
-                                                    </ul>
+                                                <Box 
+                                                    display="grid" 
+                                                    gap={0.5} 
+                                                    paddingTop={0.5}
+                                                    style={{
+                                                        gridTemplateColumns: 'auto 1fr',
+                                                        fontSize: '0.875rem'
+                                                    }}
+                                                >
+                                                    <Text>Base Price:</Text>
+                                                    <Text>${marketData[marketId].basePrice}/kg</Text>
+                                                    
+                                                    <Text>Tariff Rate:</Text>
+                                                    <Text>{(marketData[marketId].tariffRate * 100).toFixed(1)}%</Text>
+                                                    
+                                                    <Text>Shipping:</Text>
+                                                    <Text>${marketData[marketId].shippingCost.perKgRate}/kg</Text>
+                                                    
+                                                    <Text>Regulations:</Text>
+                                                    <Text>{marketData[marketId].regulations.length} requirements</Text>
+
+                                                    <Text>Peak Season:</Text>
+                                                    <Text>
+                                                        {marketData[marketId].seasonalDemand.peak
+                                                            .map(month => new Date(2024, parseInt(month) - 1).toLocaleString('default', { month: 'short' }))
+                                                            .join(', ')}
+                                                    </Text>
+                                                </Box>
+                                            </Box>
+
+                                            <Box borderTop borderColor="muted" paddingTop={1}>
+                                                <Text fontSize="sm" color="muted" weight="bold">
+                                                    Regulatory Requirements:
+                                                </Text>
+                                                <Box 
+                                                    display="flex" 
+                                                    flexDirection="column"
+                                                    gap={0.5} 
+                                                    paddingTop={0.5}
+                                                >
+                                                    {marketData[marketId].regulations.map(reg => (
+                                                        <Box 
+                                                            key={reg.name} 
+                                                            padding={1.5}
+                                                            background="shade" 
+                                                            borderRadius="sm"
+                                                            shadow
+                                                        >
+                                                            <Stack gap={0.5}>
+                                                                <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                                    <Text fontSize="md" weight="bold">
+                                                                        {reg.name}
+                                                                    </Text>
+                                                                    <Text 
+                                                                        fontSize="sm" 
+                                                                        background="success"
+                                                                        color="white"
+                                                                        padding={0.5}
+                                                                        borderRadius="sm"
+                                                                    >
+                                                                        ${reg.cost} AUD
+                                                                    </Text>
+                                                                </Box>
+                                                                <Text fontSize="sm" color="muted">
+                                                                    {reg.description}
+                                                                </Text>
+                                                            </Stack>
+                                                        </Box>
+                                                    ))}
                                                 </Box>
                                             </Box>
                                         </Stack>
@@ -245,6 +308,37 @@ export const MarketSimulator = () => {
                                                                             .map(month => new Date(2024, parseInt(month) - 1).toLocaleString('default', { month: 'short' }))
                                                                             .join(', ')}
                                                                     </Text>
+                                                                </Box>
+                                                            </Box>
+
+                                                            <Box borderTop borderColor="muted" paddingTop={1}>
+                                                                <Text fontSize="sm" color="muted" weight="bold">
+                                                                    Regulatory Requirements:
+                                                                </Text>
+                                                                <Box 
+                                                                    display="flex" 
+                                                                    flexDirection="column"
+                                                                    gap={0.5} 
+                                                                    paddingTop={0.5}
+                                                                >
+                                                                    {marketData[alt.marketId].regulations.map(reg => (
+                                                                        <Box 
+                                                                            key={reg.name} 
+                                                                            padding={1} 
+                                                                            background="shade" 
+                                                                            borderRadius="sm"
+                                                                        >
+                                                                            <Text fontSize="sm" weight="bold">
+                                                                                {reg.name}
+                                                                            </Text>
+                                                                            <Text fontSize="sm" color="muted">
+                                                                                Cost: ${reg.cost} AUD
+                                                                            </Text>
+                                                                            <Text fontSize="sm">
+                                                                                {reg.description}
+                                                                            </Text>
+                                                                        </Box>
+                                                                    ))}
                                                                 </Box>
                                                             </Box>
 

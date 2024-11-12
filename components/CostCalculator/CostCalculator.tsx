@@ -7,6 +7,7 @@ import { Box } from '@ag.ds-next/react/box';
 import { Text } from '@ag.ds-next/react/text';
 import { Card } from '@ag.ds-next/react/card';
 import { Table } from '@ag.ds-next/react/table';
+import { Stack } from '@ag.ds-next/react/stack';
 import { Accordion, AccordionItem } from '@ag.ds-next/react/accordion';
 import { marketData } from '../../data/marketData';
 import { CostBreakdown } from '../../types/market';
@@ -131,13 +132,25 @@ export const CostCalculator = () => {
                             {destination && (
                                 <AccordionItem title="View Required Regulations">
                                     <Box padding={1}>
-                                        <ul>
+                                        <Box display="flex" flexDirection="column" gap={0.5}>
                                             {marketData[destination].regulations.map(reg => (
-                                                <li key={reg.name}>
-                                                    {reg.name} - ${reg.cost} - {reg.description}
-                                                </li>
+                                                <Box 
+                                                    key={reg.name} 
+                                                    padding={1} 
+                                                    background="shade" 
+                                                    borderRadius="sm"
+                                                >
+                                                    <Box display="flex" flexDirection="column" gap={0.5}>
+                                                        <Text weight="bold">{reg.name}</Text>
+                                                        <Box display="flex" gap={0.5}>
+                                                            <Text color="muted">Cost:</Text>
+                                                            <Text>${reg.cost} AUD</Text>
+                                                        </Box>
+                                                        <Text>{reg.description}</Text>
+                                                    </Box>
+                                                </Box>
                                             ))}
-                                        </ul>
+                                        </Box>
                                     </Box>
                                 </AccordionItem>
                             )}
