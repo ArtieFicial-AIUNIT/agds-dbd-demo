@@ -4,7 +4,10 @@ import { Stack } from '@ag.ds-next/react/box';
 import { Header } from '@ag.ds-next/react/header';
 import { MainNav } from '@ag.ds-next/react/main-nav';
 
-const NAV_LINKS = [{ label: 'Home', href: '/' }];
+const NAV_LINKS = [
+    { label: 'Home', href: '/' },
+    { label: 'Shipping Trends', href: '/shipping-trends' }
+];
 
 export const SiteHeader = () => {
 	const router = useRouter();

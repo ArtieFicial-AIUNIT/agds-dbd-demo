@@ -46,3 +46,14 @@ export interface MarketRecommendation {
     score: number;
     reasons: string[];
 }
+
+export interface ShippingTrendData {
+    month: string;  // Format: 'YYYY-MM'
+    cost: number;   // Predicted shipping cost per kg
+    confidence: number; // Confidence level 0-1
+}
+
+export interface MarketPrediction {
+    marketId: string;
+    trends: ShippingTrendData[];
+}
