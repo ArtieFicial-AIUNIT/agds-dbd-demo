@@ -1,6 +1,7 @@
 import { PageContent } from '@ag.ds-next/react/content';
 import { Prose } from '@ag.ds-next/react/prose';
 import { Stack } from '@ag.ds-next/react/stack';
+import { Callout } from '@ag.ds-next/react/callout';
 import { AppLayout } from '../AppLayout';
 import { CostCalculator } from '../CostCalculator/CostCalculator';
 import { MarketSimulator } from '../MarketSimulator/MarketSimulator';
@@ -10,6 +11,12 @@ export const HomePage = () => {
         <AppLayout>
             <PageContent>
                 <Stack gap={2}>
+                    <Callout title="Simulation Tool Disclaimer" tone="warning">
+                        This is a simulation tool intended for training and demonstration purposes only. 
+                        The data, costs, and market predictions shown are hypothetical and should not be 
+                        used for actual trade or business decisions. Please consult official trade resources 
+                        and market data for accurate information.
+                    </Callout>
                     <Prose>
                         <h1>Trade Analysis and Market Planning</h1>
                         <p>
