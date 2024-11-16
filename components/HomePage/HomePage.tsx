@@ -3,7 +3,6 @@ import { Prose } from '@ag.ds-next/react/prose';
 import { Stack } from '@ag.ds-next/react/stack';
 import { Callout } from '@ag.ds-next/react/callout';
 import { AppLayout } from '../AppLayout';
-import { CostCalculator } from '../CostCalculator/CostCalculator';
 import { MarketSimulator } from '../MarketSimulator/MarketSimulator';
 
 export const HomePage = () => {
@@ -25,11 +24,6 @@ export const HomePage = () => {
                         <p>
                             For detailed information on export costs, tariffs, regulatory compliance, and market demand, please explore the various sections of this application.
                         </p>
-                        <h2>Export Cost Calculator</h2>
-                        <p>Use the calculator below to estimate your export costs:</p>
-                    </Prose>
-                    <CostCalculator />
-                    <Prose>
                         <h2>Market Scenario Planning</h2>
                         <p>Simulate market closures and find alternative export destinations:</p>
                     </Prose>
